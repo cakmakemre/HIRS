@@ -23,8 +23,7 @@ services:
       volumes:
          - ../../:/HIRS
       entrypoint: /bin/bash -c 
-      command: [sleep 90;
-                HIRS/.ci/integration-tests/setup-tpm2provisioner.sh;
+      command: [HIRS/.ci/integration-tests/setup-tpm2provisioner.sh;
                 HIRS/.ci/system-tests/systems-test-centos7-tpm2.sh]
       networks:
          hirs_aca_systems_test:

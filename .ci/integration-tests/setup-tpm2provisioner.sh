@@ -2,12 +2,12 @@
 set -e
 
 # Wait for ACA to boot
-#echo "Waiting for ACA to spin up..."
-#until [ "`curl --silent --connect-timeout 1 -I -k https://${HIRS_ACA_PORTAL_IP}:8443/HIRS_AttestationCAPortal | grep '302 Found'`" != "" ]; do
-#  :
-#done
-#echo "ACA is up!"
-
+echo "Waiting for ACA to spin up..."
+until [ "`curl --silent --connect-timeout 1 -I -k https://${HIRS_ACA_PORTAL_IP}:8443/HIRS_AttestationCAPortal | grep '302 Found'`" != "" ]; do
+  :
+done
+echo "ACA is up!"
+##
 #until [ "`curl --silent --connect-timeout 1 -I -k https://localhost:8443/HIRS_AttestationCAPortal | grep '302 Found'`" != "" ]; do
 #    :
 #done
