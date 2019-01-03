@@ -5,12 +5,12 @@
 set -e
 
 # Start Integration Testing Docker Environment
-#cp .ci/docker/.env .
-#docker-compose --verbose -f .ci/docker/docker-compose.yml up -d
+cp .ci/docker/.env .
+docker-compose -f .ci/docker/docker-compose.yml up -d
 
-cp ../docker/.env .
-docker-compose -f ../docker/docker-compose.yml up -d
-cd ../docker
+#cp ../docker/.env .
+#docker-compose -f ../docker/docker-compose.yml up -d
+cd .ci/docker
 docker-compose logs -f
 
 
