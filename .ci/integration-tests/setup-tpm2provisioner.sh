@@ -3,14 +3,10 @@ set -e
 
 # Wait for ACA to boot
 echo "Waiting for ACA to spin up..."
-until [ "`curl --silent --connect-timeout 1 -I -k https://${HIRS_ACA_PORTAL_IP}:8443/HIRS_AttestationCAPortal | grep '302 Found'`" != "" ]; do
+until [ "`curl --silent --connect-timeout 1 -I -k https://${HIRS_ACA_PORTAL_IP}:${HIRS_ACA_PORTAL_PORT}/HIRS_AttestationCAPortal | grep '302 Found'`" != "" ]; do
   :
 done
 echo "ACA is up!"
-##
-#until [ "`curl --silent --connect-timeout 1 -I -k https://localhost:8443/HIRS_AttestationCAPortal | grep '302 Found'`" != "" ]; do
-#    :
-#done
 
 # Function to install provisioner packages.
 function InstallProvisioner { 
@@ -26,7 +22,7 @@ function InstallProvisioner {
 }
 
 # Function to initialize the TPM2 Emulator
-function InitTPMEmulator { 
+function InitTpmEmulator { 
 	echo "===========Initializing TPM2 Emulator...==========="
 	
 	mkdir -p /var/run/dbus
@@ -67,8 +63,8 @@ function InitTPMEmulator {
 	/opt/paccor/bin/observer -c $PC_DIR/componentsFile -p $PC_DIR/optionsFile -e $ek_cert_der -f $PC_DIR/observerFile
 	/opt/paccor/bin/signer -o $PC_DIR/observerFile -x $PC_DIR/extensionsFile -b 20180101 -a 20280101 -N $RANDOM -k /HIRS/.ci/integration-tests/certs/ca.key -P /HIRS/.ci/integration-tests/certs/ca.crt --pem -f $PC_DIR/$platform_cert
 	
-	echo "Released NVRAM for EK."
 	if tpm2_nvlist | grep -q 0x1c00002; then
+	  echo "Released NVRAM for EK."
 	  tpm2_nvrelease -x 0x1c00002 -a 0x40000001 
 	fi
 	
@@ -84,8 +80,8 @@ function InitTPMEmulator {
 	echo "Loading EK cert into NVRAM."
 	tpm2_nvwrite -x 0x1c00002 -a 0x40000001 $ek_cert_der
 	
-	echo "Released NVRAM for PC."
 	if tpm2_nvlist | grep -q 0x1c90000; then
+	  echo "Released NVRAM for PC."
 	  tpm2_nvrelease -x 0x1c90000 -a 0x40000001 
 	fi
 	
@@ -138,10 +134,12 @@ DEFAULT_SITE_CONFIG_FILE
 InstallProvisioner
 
 # Install TPM Emulator
-InitTPMEmulator
+InitTpmEmulator
 
 # Update the hir-site.config file
 UpdateHirsSiteConfigFile
+
 echo ""
 echo "===========HIRS ACA Provisioner Setup Complete!==========="
+
 #tail -f /dev/null

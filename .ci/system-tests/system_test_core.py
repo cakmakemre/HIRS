@@ -364,36 +364,7 @@ def collectors(collectors, collector_list):
         return lambda func: func
     return unittest.skip("{0} collector isn't enabled".format(tested_collectors.difference(enabled_collectors)))
 
-def snapshot_clean_vm_state(*hostnames):
-    for hostname in hostnames:
-        # might be a fragile use of vagrant command output
-        if not "clean" == send_command("vagrant snapshot list " + hostname).strip():
-            logging.info("Saving snapshot of VM " + hostname + " as 'clean'")
-            send_command("vagrant snapshot save " + hostname + " clean")
-        else:
-            logging.info("Snapshot 'clean' for VM " + hostname + " already exists, not taking another")
-
-def restore_clean_vm_state(*hostnames):
-    for hostname in hostnames:
-        logging.info("Restoring VM " + hostname + " to snapshot 'clean'")
-        send_command("vagrant snapshot restore --no-provision " + hostname + " clean")
-
-def send_vagrant_command(raw_command, client_hostname, accept_nonzero_status=False):
-    return send_command("vagrant ssh " + client_hostname + " -c \"" + raw_command + "\"", accept_nonzero_status)
-
 def send_command(full_command, accept_nonzero_status=False):
-    parsed_command = shlex.split(full_command)
-    p = subprocess.Popen(
-        parsed_command, cwd="../../vagrant", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    client_out, client_err = p.communicate()
-    if p.returncode != 0 and not accept_nonzero_status:
-        logging.error("Vagrant command " + full_command + " exited with return code " + str(p.returncode))
-        logging.error(str(client_out))
-        logging.error(str(client_err))
-        raise RuntimeError("Vagrant command exited with a nonzero status, out:\n" + str(client_out) + "\nerr:\n" + str(client_err))
-    return client_out
-
-def send_command_V2(full_command, accept_nonzero_status=False):
     parsed_command = shlex.split(full_command)
     p = subprocess.Popen(parsed_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     client_out, client_err = p.communicate()
@@ -432,21 +403,6 @@ def run_hirs_report(client_hostname):
         logging.info("Report appraisal unsuccessful: " + client_out)
         return False
 
-def run_hirs_report_and_clear_cache_V2(client_hostname):
-    """Runs a hirs report for the specified client host name.
-    The cached xml report is cleared.
-
-    Returns the client output text from running the command.
-    """
-
-    logging.info("running hirs report over ssh on {0}".format(client_hostname))
-    client_out = send_command_V2("sudo hirs report",accept_nonzero_status=True)
-    global CACHED_XML_REPORT
-    if CACHED_XML_REPORT:
-        logging.info("clearing cached XML report")
-        CACHED_XML_REPORT = None
-    return client_out
-
 def run_hirs_report_and_clear_cache(client_hostname):
     """Runs a hirs report for the specified client host name.
     The cached xml report is cleared.
@@ -455,25 +411,18 @@ def run_hirs_report_and_clear_cache(client_hostname):
     """
 
     logging.info("running hirs report over ssh on {0}".format(client_hostname))
-    client_out = send_vagrant_command("sudo hirs report", client_hostname, accept_nonzero_status=True)
+    client_out = send_command("sudo hirs report",accept_nonzero_status=True)
     global CACHED_XML_REPORT
     if CACHED_XML_REPORT:
         logging.info("clearing cached XML report")
         CACHED_XML_REPORT = None
     return client_out
 
-def run_hirs_provisioner(client_hostname):
-    """Runs the hirs provisioner
-    """
-    logging.info("running hirs provisioner over ssh on {0}".format(client_hostname))
-    client_out = send_vagrant_command("sudo hirs-provisioner provision", client_hostname, accept_nonzero_status=False)
-    return client_out
-
 def run_hirs_provisioner_tpm2(client_hostname):
     """Runs the hirs provisioner TPM2
     """
     logging.info("running hirs provisioner tpm2 on {0}".format(client_hostname))
-    client_out = send_command_V2("hirs-provisioner-tpm2 provision")
+    client_out = send_command("hirs-provisioner-tpm2 provision")
     return client_out
 
 def parse_xml_with_stripped_namespaces(raw_xml_string):
@@ -508,7 +457,7 @@ def touch_random_file_and_remove(client_hostname):
     rm_command = "rm {}".format(filename)
 
     combined_command = "{};{};{};{}".format(echo_command, cat_command, sha_command, rm_command)
-    command_output = send_vagrant_command(combined_command, client_hostname)
+#    command_output = send_vagrant_command(combined_command, client_hostname)
     sha_hash = command_output.split()[1]
 
     return (filename, sha_hash)
@@ -518,16 +467,6 @@ def get_random_pcr_hex_value():
     """
     # get 40 hex chars
     return str(binascii.b2a_hex(os.urandom(20)))
-
-
-def restart_vagrant_vm(self, client_hostname):
-    full_command = "vagrant reload " + client_hostname
-    parsed_command = shlex.split(full_command)
-    p = subprocess.Popen(
-        parsed_command, cwd="../../vagrant")
-    p.wait()
-    client_out, client_err = p.communicate()
-    return client_out
 
 def get_current_timestamp():
     current_time = datetime.datetime.now()

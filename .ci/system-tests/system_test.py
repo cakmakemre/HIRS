@@ -19,16 +19,15 @@ import random
 import uuid
 import time
 import sys
-#import config_parser
 import argparse
 
-from system_test_core import HIRSPortal, AttestationCAPortal, collectors, send_command_V2, send_command_sha1sum,\
-	snapshot_clean_vm_state, restore_clean_vm_state, run_hirs_report, run_hirs_provisioner,\
-	run_hirs_provisioner_tpm2, parse_xml_with_stripped_namespaces, get_current_timestamp,\
-	get_all_nodes_recursively, touch_random_file_and_remove,\
-	get_random_pcr_hex_value, is_ubuntu_client, is_tpm2,\
+from system_test_core import HIRSPortal, AttestationCAPortal, collectors, \
+	send_command, send_command_sha1sum, run_hirs_report, \
+	run_hirs_provisioner_tpm2, parse_xml_with_stripped_namespaces, get_current_timestamp, \
+	get_all_nodes_recursively, touch_random_file_and_remove, get_random_pcr_hex_value, \
+	is_ubuntu_client, is_tpm2,\
 	DEFAULT_IMA_POLICY, DEFAULT_TPM_POLICY
-
+	
 NUMBER_OF_PCRS = 24
 
 suffix = os.environ.get('RANDOM_SYS_TEST_ID')
@@ -40,30 +39,21 @@ else:
 
 COLLECTOR_LIST = os.environ.get('ENABLED_COLLECTORS').split(',')
 CLIENT = os.environ.get('CLIENT_HOSTNAME')
-SERVER = os.environ.get('SERVER_HOSTNAME')
-SERVER_SHORT = os.environ.get('SERVER_SHORT')
-
-#HIRS_SERVER_URL = "https://localhost:" + vm_config.get("forwarded_portal_ports", SERVER_SHORT) + "/HIRS_Portal/"
-#HIRS_ATTESTATION_CA_PORTAL_URL = "https://localhost:" + vm_config.get("forwarded_portal_ports", SERVER_SHORT) + "/HIRS_AttestationCAPortal/"
+CLIENT_OS = os.environ.get('CLIENT_OS')
+TPM_VERSION = os.environ.get('TPM_VERSION')
 HIRS_SERVER_URL = "https://runner2.dod.mil:8443/HIRS_Portal/"
-#HIRS_ATTESTATION_CA_PORTAL_URL = "https://172.17.0.2:8443/HIRS_AttestationCAPortal/"
 HIRS_ATTESTATION_CA_PORTAL_URL = "https://" + \
 	os.environ.get('HIRS_ACA_PORTAL_IP') +":" + \
 	os.environ.get('HIRS_ACA_PORTAL_PORT') + \
 	"/HIRS_AttestationCAPortal/"
-#HIRS_ATTESTATION_CA_PORTAL_URL = "https://localhost:" + os.environ.get('HIRS_ACA_PORTAL_PORT') + \
-#	"/HIRS_AttestationCAPortal/"
-
 TEST_LOG_FILE = os.environ.get('TEST_LOG')
 LOG_LEVEL = os.environ.get('LOG_LEVEL')
-CLIENT_OS = os.environ.get('CLIENT_OS')
-TPM_VERSION = os.environ.get('TPM_VERSION')
 CA_CERT_LOCATION = "/HIRS/.ci/integration-tests/certs/ca.crt"
 EK_CA_CERT_LOCATION = "/HIRS/.ci/integration-tests/certs/ek_cert.der"
 USB_STORAGE_FILE_HASH = "e164c378ceb45a62642730be5eb3169a6bfc2d6d"
 USB_STORAGE_FILE_HASH_2 = "e164c378ceb45a62642730be5eb3169a6bfc1234"
-provisioner_out = None
 FORMAT = "%(asctime)-15s %(message)s"
+provisioner_out = None
 
 logging.basicConfig(filename=TEST_LOG_FILE,level=eval(LOG_LEVEL), format=FORMAT)
 logging.info("*****************beginning of system_test.py*****************")
@@ -83,7 +73,7 @@ class SystemTest(unittest.TestCase):
 	def setUp(self):
 		"""Set the systems tests state up for testing"""
 #         Portal.set_group_appraisal_wait_setting()
-#         AcaPortal.disable_supply_chain_validations()
+        AcaPortal.disable_supply_chain_validations()
 
 	def tearDown(self):
 		"""Tears down the state for testing"""

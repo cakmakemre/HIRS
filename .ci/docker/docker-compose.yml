@@ -10,7 +10,6 @@ services:
          - "${HIRS_ACA_PORTAL_PORT}:${HIRS_ACA_PORTAL_CONTAINER_PORT}"
       entrypoint: /bin/bash -c 
       command: [HIRS/.ci/integration-tests/setup-aca.sh]
-      restart: always
       networks:
          hirs_aca_systems_test:
             ipv4_address: ${HIRS_ACA_PORTAL_IP}

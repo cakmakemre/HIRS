@@ -12,6 +12,7 @@ docker-compose -f .ci/docker/docker-compose.yml up -d
 #docker-compose -f ../docker/docker-compose.yml up -d
 cd .ci/docker
 docker-compose logs -f
+#docker-compose down
 
 
 # Check to see if Environment Stand-Up is Complete
