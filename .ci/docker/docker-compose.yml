@@ -15,7 +15,8 @@ services:
             ipv4_address: ${HIRS_ACA_PORTAL_IP}
 
    aca-provisioner-tpm2:
-      image: hirs/hirs-ci:tpm2provisioner
+      #image: hirs/hirs-ci:tpm2provisioner
+      image: tdlamber/hirs-ci-testing:tpm2provisioner
       container_name: hirs-aca-provisioner-tpm2
       depends_on:
          - aca 
